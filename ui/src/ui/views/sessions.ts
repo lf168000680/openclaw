@@ -8,6 +8,7 @@ import { normalizeLowercaseStringOrEmpty, normalizeOptionalString } from "../str
 import type {
   GatewaySessionRow,
   SessionCompactionCheckpoint,
+  SessionCompactionCheckpointReason,
   SessionsListResult,
 } from "../types.ts";
 
@@ -65,19 +66,53 @@ export type SessionsProps = {
 
 const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high", "xhigh"] as const;
 const BINARY_THINK_LEVELS = ["", "off", "on"] as const;
-const VERBOSE_LEVELS = [
-  { value: "", label: "inherit" },
-  { value: "off", label: "off (explicit)" },
-  { value: "on", label: "on" },
-  { value: "full", label: "full" },
-] as const;
-const FAST_LEVELS = [
-  { value: "", label: "inherit" },
-  { value: "on", label: "on" },
-  { value: "off", label: "off" },
-] as const;
 const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
 const PAGE_SIZES = [10, 25, 50, 100] as const;
+
+type LabeledOption = { value: string; label: string; labelKey?: string };
+
+const FAST_LEVELS: readonly LabeledOption[] = [
+  { value: "", label: "inherit", labelKey: "ui.sessions.fastLevels.inherit" },
+  { value: "on", label: "on", labelKey: "ui.sessions.fastLevels.on" },
+  { value: "off", label: "off", labelKey: "ui.sessions.fastLevels.off" },
+];
+
+const VERBOSE_LEVELS: readonly LabeledOption[] = [
+  { value: "", label: "inherit", labelKey: "ui.sessions.verboseLevels.inherit" },
+  { value: "off", label: "off (explicit)", labelKey: "ui.sessions.verboseLevels.offExplicit" },
+  { value: "on", label: "on", labelKey: "ui.sessions.verboseLevels.on" },
+  { value: "full", label: "full", labelKey: "ui.sessions.verboseLevels.full" },
+];
+
+const KIND_LABEL_KEYS: Record<string, string> = {
+  direct: "ui.sessions.kindNames.direct",
+  group: "ui.sessions.kindNames.group",
+  global: "ui.sessions.kindNames.global",
+  unknown: "ui.sessions.kindNames.unknown",
+};
+
+const THINK_LEVEL_LABEL_KEYS: Record<string, string> = {
+  off: "ui.sessions.thinkLevels.off",
+  minimal: "ui.sessions.thinkLevels.minimal",
+  low: "ui.sessions.thinkLevels.low",
+  medium: "ui.sessions.thinkLevels.medium",
+  high: "ui.sessions.thinkLevels.high",
+  xhigh: "ui.sessions.thinkLevels.xhigh",
+  on: "ui.sessions.thinkLevels.on",
+};
+
+const REASONING_LEVEL_LABEL_KEYS: Record<string, string> = {
+  off: "ui.sessions.reasoningLevels.off",
+  on: "ui.sessions.reasoningLevels.on",
+  stream: "ui.sessions.reasoningLevels.stream",
+};
+
+const CHECKPOINT_REASON_LABEL_KEYS: Record<SessionCompactionCheckpointReason, string> = {
+  manual: "ui.sessions.checkpoints.reason.manual",
+  "auto-threshold": "ui.sessions.checkpoints.reason.autoThreshold",
+  "overflow-retry": "ui.sessions.checkpoints.reason.overflowRetry",
+  "timeout-retry": "ui.sessions.checkpoints.reason.timeoutRetry",
+};
 
 function normalizeProviderId(provider?: string | null): string {
   if (!provider) {
@@ -109,16 +144,55 @@ function withCurrentOption(options: readonly string[], current: string): string[
 }
 
 function withCurrentLabeledOption(
-  options: readonly { value: string; label: string }[],
+  options: readonly LabeledOption[],
   current: string,
-): Array<{ value: string; label: string }> {
+): Array<LabeledOption> {
   if (!current) {
     return [...options];
   }
   if (options.some((option) => option.value === current)) {
     return [...options];
   }
-  return [...options, { value: current, label: `${current} (custom)` }];
+  return [
+    ...options,
+    {
+      value: current,
+      label: t("ui.sessions.customOption", { value: current }),
+    },
+  ];
+}
+
+function formatThinkLevelLabel(level: string): string {
+  if (!level) {
+    return t("ui.sessions.thinkLevels.inherit");
+  }
+  const key = THINK_LEVEL_LABEL_KEYS[level];
+  if (key) {
+    return t(key);
+  }
+  return t("ui.sessions.thinkLevels.custom", { value: level });
+}
+
+function formatReasoningLevelLabel(level: string): string {
+  if (!level) {
+    return t("ui.sessions.reasoningLevels.inherit");
+  }
+  const key = REASONING_LEVEL_LABEL_KEYS[level];
+  if (key) {
+    return t(key);
+  }
+  return t("ui.sessions.reasoningLevels.custom", { value: level });
+}
+
+function resolveKindLabel(kind?: string | null): string {
+  if (!kind) {
+    return t("ui.sessions.kindNames.unknown");
+  }
+  const key = KIND_LABEL_KEYS[kind];
+  if (key) {
+    return t(key);
+  }
+  return kind;
 }
 
 function resolveThinkLevelDisplay(value: string, isBinary: boolean): string {
@@ -196,33 +270,33 @@ function paginateRows<T>(rows: T[], page: number, pageSize: number): T[] {
 }
 
 function formatCheckpointReason(reason: SessionCompactionCheckpoint["reason"]): string {
-  switch (reason) {
-    case "manual":
-      return "manual";
-    case "auto-threshold":
-      return "auto-threshold";
-    case "overflow-retry":
-      return "overflow retry";
-    case "timeout-retry":
-      return "timeout retry";
-    default:
-      return reason;
+  const key = CHECKPOINT_REASON_LABEL_KEYS[reason];
+  if (key) {
+    return t(key);
   }
+  return reason;
 }
 
 function formatCheckpointDelta(checkpoint: SessionCompactionCheckpoint): string {
+  const before = checkpoint.tokensBefore;
+  const after = checkpoint.tokensAfter;
   if (
-    typeof checkpoint.tokensBefore === "number" &&
-    typeof checkpoint.tokensAfter === "number" &&
-    Number.isFinite(checkpoint.tokensBefore) &&
-    Number.isFinite(checkpoint.tokensAfter)
+    typeof before === "number" &&
+    typeof after === "number" &&
+    Number.isFinite(before) &&
+    Number.isFinite(after)
   ) {
-    return `${checkpoint.tokensBefore.toLocaleString()} → ${checkpoint.tokensAfter.toLocaleString()} tokens`;
+    return t("ui.sessions.checkpoints.delta.range", {
+      before: before.toLocaleString(),
+      after: after.toLocaleString(),
+    });
   }
-  if (typeof checkpoint.tokensBefore === "number" && Number.isFinite(checkpoint.tokensBefore)) {
-    return `${checkpoint.tokensBefore.toLocaleString()} tokens before`;
+  if (typeof before === "number" && Number.isFinite(before)) {
+    return t("ui.sessions.checkpoints.delta.before", {
+      tokens: before.toLocaleString(),
+    });
   }
-  return "token delta unavailable";
+  return t("ui.sessions.checkpoints.delta.unavailable");
 }
 
 export function renderSessions(props: SessionsProps) {
@@ -258,11 +332,11 @@ export function renderSessions(props: SessionsProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between; margin-bottom: 12px;">
         <div>
-          <div class="card-title">Sessions</div>
+          <div class="card-title">${t("ui.sessions.title")}</div>
           <div class="card-sub">
             ${props.result
-              ? `Store: ${props.result.path}`
-              : "Active session keys and per-session overrides."}
+              ? t("ui.sessions.store", { path: props.result.path })
+              : t("ui.sessions.subtitle")}
           </div>
         </div>
         <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
@@ -272,10 +346,10 @@ export function renderSessions(props: SessionsProps) {
 
       <div class="filters" style="margin-bottom: 12px;">
         <label class="field-inline">
-          <span>Active</span>
+          <span>${t("ui.sessions.active")}</span>
           <input
             style="width: 72px;"
-            placeholder="min"
+            placeholder=${t("ui.sessions.activePlaceholder")}
             .value=${props.activeMinutes}
             @input=${(e: Event) =>
               props.onFiltersChange({
@@ -287,7 +361,7 @@ export function renderSessions(props: SessionsProps) {
           />
         </label>
         <label class="field-inline">
-          <span>Limit</span>
+          <span>${t("ui.sessions.limit")}</span>
           <input
             style="width: 64px;"
             .value=${props.limit}
@@ -312,7 +386,7 @@ export function renderSessions(props: SessionsProps) {
                 includeUnknown: props.includeUnknown,
               })}
           />
-          <span>Global</span>
+          <span>${t("ui.sessions.global")}</span>
         </label>
         <label class="field-inline checkbox">
           <input
@@ -326,7 +400,7 @@ export function renderSessions(props: SessionsProps) {
                 includeUnknown: (e.target as HTMLInputElement).checked,
               })}
           />
-          <span>Unknown</span>
+          <span>${t("ui.sessions.unknown")}</span>
         </label>
       </div>
 
@@ -339,7 +413,7 @@ export function renderSessions(props: SessionsProps) {
           <div class="data-table-search">
             <input
               type="text"
-              placeholder="Filter by key, label, kind…"
+              placeholder=${t("ui.sessions.filterPlaceholder")}
               .value=${props.searchQuery}
               @input=${(e: Event) => props.onSearchChange((e.target as HTMLInputElement).value)}
             />
@@ -349,7 +423,7 @@ export function renderSessions(props: SessionsProps) {
         ${props.selectedKeys.size > 0
           ? html`
               <div class="data-table-bulk-bar">
-                <span>${props.selectedKeys.size} selected</span>
+                <span>${t("ui.sessions.selected", { count: props.selectedKeys.size })}</span>
                 <button class="btn btn--sm" @click=${props.onDeselectAll}>
                   ${t("common.unselect")}
                 </button>
@@ -358,7 +432,7 @@ export function renderSessions(props: SessionsProps) {
                   ?disabled=${props.loading}
                   @click=${props.onDeleteSelected}
                 >
-                  ${icons.trash} Delete
+                  ${icons.trash} ${t("ui.sessions.delete")}
                 </button>
               </div>
             `
@@ -384,19 +458,20 @@ export function renderSessions(props: SessionsProps) {
                             props.onSelectPage(paginated.map((r) => r.key));
                           }
                         }}
-                        aria-label="Select all on page"
+                        aria-label=${t("ui.sessions.selectAllPage")}
                       />`
                     : nothing}
                 </th>
-                ${sortHeader("key", "Key", "data-table-key-col")}
-                <th>Label</th>
-                ${sortHeader("kind", "Kind")} ${sortHeader("updated", "Updated")}
-                ${sortHeader("tokens", "Tokens")}
-                <th>Compaction</th>
-                <th>Thinking</th>
-                <th>Fast</th>
-                <th>Verbose</th>
-                <th>Reasoning</th>
+                ${sortHeader("key", t("ui.sessions.key"), "data-table-key-col")}
+                <th>${t("ui.sessions.label")}</th>
+                ${sortHeader("kind", t("ui.sessions.kind"))}
+                ${sortHeader("updated", t("ui.sessions.updated"))}
+                ${sortHeader("tokens", t("ui.sessions.tokens"))}
+                <th>${t("ui.sessions.compaction")}</th>
+                <th>${t("ui.sessions.thinking")}</th>
+                <th>${t("ui.sessions.fast")}</th>
+                <th>${t("ui.sessions.verbose")}</th>
+                <th>${t("ui.sessions.reasoning")}</th>
               </tr>
             </thead>
             <tbody>
@@ -407,7 +482,7 @@ export function renderSessions(props: SessionsProps) {
                         colspan="11"
                         style="text-align: center; padding: 48px 16px; color: var(--muted)"
                       >
-                        No sessions found.
+                        ${t("ui.sessions.noSessions")}
                       </td>
                     </tr>
                   `
@@ -430,16 +505,18 @@ export function renderSessions(props: SessionsProps) {
                     @change=${(e: Event) =>
                       props.onPageSizeChange(Number((e.target as HTMLSelectElement).value))}
                   >
-                    ${PAGE_SIZES.map((s) => html`<option value=${s}>${s} per page</option>`)}
+                    ${PAGE_SIZES.map(
+                      (s) => html`<option value=${s}>${t("ui.sessions.perPage", { count: s })}</option>`,
+                    )}
                   </select>
                   <button ?disabled=${page <= 0} @click=${() => props.onPageChange(page - 1)}>
-                    Previous
+                    ${t("ui.sessions.previous")}
                   </button>
                   <button
                     ?disabled=${page >= totalPages - 1}
                     @click=${() => props.onPageChange(page + 1)}
                   >
-                    Next
+                    ${t("ui.sessions.next")}
                   </button>
                 </div>
               </div>
@@ -484,6 +561,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
         : row.kind === "global"
           ? "data-table-badge--global"
           : "data-table-badge--unknown";
+  const kindLabel = resolveKindLabel(row.kind);
 
   return [
     html`<tr>
@@ -492,7 +570,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
           type="checkbox"
           .checked=${props.selectedKeys.has(row.key)}
           @change=${() => props.onToggleSelect(row.key)}
-          aria-label="Select session"
+          aria-label=${t("ui.sessions.selectSession")}
         />
       </td>
       <td class="data-table-key-col">
@@ -529,7 +607,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
         <input
           .value=${row.label ?? ""}
           ?disabled=${props.loading}
-          placeholder="(optional)"
+          placeholder=${t("ui.sessions.optional")}
           style="width: 100%; max-width: 140px; padding: 6px 10px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-sm);"
           @change=${(e: Event) => {
             const value = normalizeOptionalString((e.target as HTMLInputElement).value) ?? null;
@@ -538,7 +616,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
         />
       </td>
       <td>
-        <span class="data-table-badge ${badgeClass}">${row.kind}</span>
+        <span class="data-table-badge ${badgeClass}">${kindLabel}</span>
       </td>
       <td>${updated}</td>
       <td>${formatSessionTokens(row)}</td>
@@ -546,8 +624,11 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
         <div style="display: grid; gap: 6px;">
           <span class="muted" style="font-size: 12px;">
             ${checkpointCount > 0
-              ? `${checkpointCount} checkpoint${checkpointCount === 1 ? "" : "s"}`
-              : "none"}
+              ? t("ui.sessions.checkpoints.count", {
+                count: String(checkpointCount),
+                plural: checkpointCount === 1 ? "" : "s",
+              })
+              : t("ui.sessions.checkpoints.none")}
           </span>
           ${latestCheckpoint
             ? html`
@@ -562,7 +643,9 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
             ?disabled=${props.checkpointLoadingKey === row.key}
             @click=${() => props.onToggleCheckpointDetails(row.key)}
           >
-            ${isExpanded ? "Hide checkpoints" : "Show checkpoints"}
+            ${isExpanded
+              ? t("ui.sessions.checkpoints.hide")
+              : t("ui.sessions.checkpoints.show")}
           </button>
         </div>
       </td>
@@ -580,7 +663,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
           ${thinkLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${thinking === level}>
-                ${level || "inherit"}
+                ${formatThinkLevelLabel(level)}
               </option>`,
           )}
         </select>
@@ -597,7 +680,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
           ${fastLevels.map(
             (level) =>
               html`<option value=${level.value} ?selected=${fastMode === level.value}>
-                ${level.label}
+                ${level.labelKey ? t(level.labelKey) : level.label}
               </option>`,
           )}
         </select>
@@ -614,7 +697,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
           ${verboseLevels.map(
             (level) =>
               html`<option value=${level.value} ?selected=${verbose === level.value}>
-                ${level.label}
+                ${level.labelKey ? t(level.labelKey) : level.label}
               </option>`,
           )}
         </select>
@@ -631,7 +714,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
           ${reasoningLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${reasoning === level}>
-                ${level || "inherit"}
+                ${formatReasoningLevelLabel(level)}
               </option>`,
           )}
         </select>
@@ -645,12 +728,12 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
                 style="padding: 14px 16px; border-top: 1px solid var(--border); background: var(--surface-2, rgba(127, 127, 127, 0.05));"
               >
                 ${props.checkpointLoadingKey === row.key
-                  ? html`<div class="muted">Loading checkpoints…</div>`
+                  ? html`<div class="muted">${t("ui.sessions.loadingCheckpoints")}</div>`
                   : checkpointError
                     ? html`<div class="callout danger">${checkpointError}</div>`
                     : checkpointItems.length === 0
                       ? html`<div class="muted">
-                          No compaction checkpoints recorded for this session.
+                          ${t("ui.sessions.noCheckpoints")}
                         </div>`
                       : html`
                           <div style="display: grid; gap: 10px;">
@@ -674,7 +757,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
                                     ? html`<div style="white-space: pre-wrap;">
                                         ${checkpoint.summary}
                                       </div>`
-                                    : html`<div class="muted">No summary captured.</div>`}
+                                    : html`<div class="muted">${t("ui.sessions.noSummary")}</div>`}
                                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                     <button
                                       class="btn btn--sm"
@@ -686,7 +769,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
                                           checkpoint.checkpointId,
                                         )}
                                     >
-                                      Branch from checkpoint
+                                      ${t("ui.sessions.branchFromCheckpoint")}
                                     </button>
                                     <button
                                       class="btn btn--sm"
@@ -695,7 +778,7 @@ function renderRows(row: GatewaySessionRow, props: SessionsProps) {
                                       @click=${() =>
                                         props.onRestoreCheckpoint(row.key, checkpoint.checkpointId)}
                                     >
-                                      Restore
+                                      ${t("ui.sessions.restore")}
                                     </button>
                                   </div>
                                 </div>

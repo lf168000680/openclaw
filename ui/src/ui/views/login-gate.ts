@@ -27,7 +27,7 @@ export function renderLoginGate(state: AppViewState) {
                 const v = (e.target as HTMLInputElement).value;
                 state.applySettings({ ...state.settings, gatewayUrl: v });
               }}
-              placeholder="ws://127.0.0.1:18789"
+              placeholder=${t("ui.login.wsPlaceholder")}
             />
           </label>
           <label class="field">
@@ -52,8 +52,10 @@ export function renderLoginGate(state: AppViewState) {
               <button
                 type="button"
                 class="btn btn--icon ${state.loginShowGatewayToken ? "active" : ""}"
-                title=${state.loginShowGatewayToken ? "Hide token" : "Show token"}
-                aria-label="Toggle token visibility"
+                title=${state.loginShowGatewayToken
+                  ? t("ui.visibility.hideToken")
+                  : t("ui.visibility.showToken")}
+                aria-label=${t("ui.visibility.toggleToken")}
                 aria-pressed=${state.loginShowGatewayToken}
                 @click=${() => {
                   state.loginShowGatewayToken = !state.loginShowGatewayToken;
@@ -85,8 +87,10 @@ export function renderLoginGate(state: AppViewState) {
               <button
                 type="button"
                 class="btn btn--icon ${state.loginShowGatewayPassword ? "active" : ""}"
-                title=${state.loginShowGatewayPassword ? "Hide password" : "Show password"}
-                aria-label="Toggle password visibility"
+                title=${state.loginShowGatewayPassword
+                  ? t("ui.visibility.hidePassword")
+                  : t("ui.visibility.showPassword")}
+                aria-label=${t("ui.visibility.togglePassword")}
                 aria-pressed=${state.loginShowGatewayPassword}
                 @click=${() => {
                   state.loginShowGatewayPassword = !state.loginShowGatewayPassword;

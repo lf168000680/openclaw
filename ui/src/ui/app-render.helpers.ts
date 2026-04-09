@@ -409,8 +409,8 @@ export function renderChatMobileToggle(state: AppViewState) {
             }
           }
         }}
-        title="Chat settings"
-        aria-label="Chat settings"
+        title=${t("ui.chatControls.settings")}
+        aria-label=${t("ui.chatControls.settings")}
       >
         <svg
           width="18"
@@ -549,7 +549,7 @@ function renderChatModelSelect(state: AppViewState) {
     <label class="field chat-controls__session chat-controls__model">
       <select
         data-chat-model-select="true"
-        aria-label="Chat model"
+        aria-label=${t("ui.chatControls.model")}
         title=${selectedLabel}
         ?disabled=${disabled}
         @change=${async (e: Event) => {
@@ -650,7 +650,7 @@ function resolveChatThinkingSelectState(state: AppViewState): ChatThinkingSelect
       : "off";
   return {
     currentOverride,
-    defaultLabel: `Default (${defaultLevel})`,
+    defaultLabel: t("ui.chatControls.defaultThinking", { level: defaultLevel }),
     options: buildThinkingOptions(provider, model, currentOverride),
   };
 }
@@ -668,7 +668,7 @@ function renderChatThinkingSelect(state: AppViewState) {
     <label class="field chat-controls__session chat-controls__thinking-select">
       <select
         data-chat-thinking-select="true"
-        aria-label="Chat thinking level"
+        aria-label=${t("ui.chatControls.thinkingLevel")}
         title=${selectedLabel}
         ?disabled=${disabled}
         @change=${async (e: Event) => {
@@ -716,7 +716,7 @@ async function switchChatModel(state: AppViewState, nextModel: string) {
   } catch (err) {
     // Roll back so the picker reflects the actual server model.
     state.chatModelOverrides = { ...state.chatModelOverrides, [targetSessionKey]: prevOverride };
-    state.lastError = `Failed to set model: ${String(err)}`;
+    state.lastError = t("ui.chatControls.setModelFailed", { error: String(err) });
   }
 }
 
@@ -770,24 +770,24 @@ async function switchChatThinkingLevel(state: AppViewState, nextThinkingLevel: s
   } catch (err) {
     patchSessionThinkingLevel(state, targetSessionKey, previousThinkingLevel);
     state.chatThinkingLevel = normalizedPrev ?? null;
-    state.lastError = `Failed to set thinking level: ${String(err)}`;
+    state.lastError = t("ui.chatControls.setThinkingLevelFailed", { error: String(err) });
   }
 }
 
 /* ── Channel display labels ────────────────────────────── */
-const CHANNEL_LABELS: Record<string, string> = {
-  bluebubbles: "iMessage",
-  telegram: "Telegram",
-  discord: "Discord",
-  signal: "Signal",
-  slack: "Slack",
-  whatsapp: "WhatsApp",
-  matrix: "Matrix",
-  email: "Email",
-  sms: "SMS",
+const CHANNEL_LABEL_KEYS: Record<string, string> = {
+  bluebubbles: "ui.channels.bluebubbles",
+  telegram: "ui.channels.telegram",
+  discord: "ui.channels.discord",
+  signal: "ui.channels.signal",
+  slack: "ui.channels.slack",
+  whatsapp: "ui.channels.whatsapp",
+  matrix: "ui.channels.matrix",
+  email: "ui.channels.email",
+  sms: "ui.channels.sms",
 };
 
-const KNOWN_CHANNEL_KEYS = Object.keys(CHANNEL_LABELS);
+const KNOWN_CHANNEL_KEYS = Object.keys(CHANNEL_LABEL_KEYS);
 
 /** Parsed type / context extracted from a session key. */
 export type SessionKeyInfo = {
@@ -801,6 +801,11 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+function resolveChannelLabel(channel: string): string {
+  const key = CHANNEL_LABEL_KEYS[channel];
+  return key ? t(key) : capitalize(channel);
+}
+
 /**
  * Parse a session key to extract type information and a human-readable
  * fallback display name.  Exported for testing.
@@ -810,17 +815,23 @@ export function parseSessionKey(key: string): SessionKeyInfo {
 
   // ── Main session ─────────────────────────────────
   if (key === "main" || key === "agent:main:main") {
-    return { prefix: "", fallbackName: "Main Session" };
+    return { prefix: "", fallbackName: t("ui.sessions.mainSession") };
   }
 
   // ── Subagent ─────────────────────────────────────
   if (key.includes(":subagent:")) {
-    return { prefix: "Subagent:", fallbackName: "Subagent:" };
+    return {
+      prefix: t("ui.sessions.subagentPrefix"),
+      fallbackName: t("ui.sessions.subagentPrefix"),
+    };
   }
 
   // ── Cron job ─────────────────────────────────────
   if (normalized.startsWith("cron:") || key.includes(":cron:")) {
-    return { prefix: "Cron:", fallbackName: "Cron Job:" };
+    return {
+      prefix: t("ui.sessions.cronPrefix"),
+      fallbackName: t("ui.sessions.cronJob"),
+    };
   }
 
   // ── Direct chat  (agent:<x>:<channel>:direct:<id>) ──
@@ -828,7 +839,7 @@ export function parseSessionKey(key: string): SessionKeyInfo {
   if (directMatch) {
     const channel = directMatch[1];
     const identifier = directMatch[2];
-    const channelLabel = CHANNEL_LABELS[channel] ?? capitalize(channel);
+    const channelLabel = resolveChannelLabel(channel);
     return { prefix: "", fallbackName: `${channelLabel} · ${identifier}` };
   }
 
@@ -836,14 +847,17 @@ export function parseSessionKey(key: string): SessionKeyInfo {
   const groupMatch = key.match(/^agent:[^:]+:([^:]+):group:(.+)$/);
   if (groupMatch) {
     const channel = groupMatch[1];
-    const channelLabel = CHANNEL_LABELS[channel] ?? capitalize(channel);
-    return { prefix: "", fallbackName: `${channelLabel} Group` };
+    const channelLabel = resolveChannelLabel(channel);
+    return { prefix: "", fallbackName: t("ui.sessions.channelGroup", { channel: channelLabel }) };
   }
 
   // ── Channel-prefixed legacy keys (e.g. "bluebubbles:g-…") ──
   for (const ch of KNOWN_CHANNEL_KEYS) {
     if (key === ch || key.startsWith(`${ch}:`)) {
-      return { prefix: "", fallbackName: `${CHANNEL_LABELS[ch]} Session` };
+      return {
+        prefix: "",
+        fallbackName: t("ui.sessions.channelSession", { channel: resolveChannelLabel(ch) }),
+      };
     }
   }
 
@@ -948,7 +962,7 @@ export function resolveSessionOptionGroups(
           `agent:${normalizeLowercaseStringOrEmpty(parsed.agentId)}`,
           resolveAgentGroupLabel(state, parsed.agentId),
         )
-      : ensureGroup("other", "Other Sessions");
+      : ensureGroup("other", t("ui.sessions.otherSessions"));
     const scopeLabel = normalizeOptionalString(parsed?.rest) ?? key;
     const label = resolveSessionScopedOptionLabel(key, row, parsed?.rest);
     group.options.push({
@@ -1089,9 +1103,9 @@ function resolveSessionScopedOptionLabel(
 
 type ThemeModeOption = { id: ThemeMode; label: string; short: string };
 const THEME_MODE_OPTIONS: ThemeModeOption[] = [
-  { id: "system", label: "System", short: "SYS" },
-  { id: "light", label: "Light", short: "LIGHT" },
-  { id: "dark", label: "Dark", short: "DARK" },
+  { id: "system", label: t("ui.theme.system"), short: "SYS" },
+  { id: "light", label: t("ui.theme.light"), short: "LIGHT" },
+  { id: "dark", label: t("ui.theme.dark"), short: "DARK" },
 ];
 
 export function renderTopbarThemeModeToggle(state: AppViewState) {
@@ -1113,7 +1127,7 @@ export function renderTopbarThemeModeToggle(state: AppViewState) {
   };
 
   return html`
-    <div class="topbar-theme-mode" role="group" aria-label="Color mode">
+    <div class="topbar-theme-mode" role="group" aria-label=${t("ui.theme.colorMode")}>
       ${THEME_MODE_OPTIONS.map(
         (opt) => html`
           <button
@@ -1122,7 +1136,7 @@ export function renderTopbarThemeModeToggle(state: AppViewState) {
               ? "topbar-theme-mode__btn--active"
               : ""}"
             title=${opt.label}
-            aria-label="Color mode: ${opt.label}"
+            aria-label=${t("ui.theme.colorModeOption", { label: opt.label })}
             aria-pressed=${opt.id === state.themeMode}
             @click=${(e: Event) => applyMode(opt.id, e)}
           >
@@ -1145,8 +1159,8 @@ export function renderSidebarConnectionStatus(state: AppViewState) {
       class="sidebar-version__status ${toneClass}"
       role="img"
       aria-live="polite"
-      aria-label="Gateway status: ${label}"
-      title="Gateway status: ${label}"
+      aria-label=${t("ui.theme.gatewayStatus", { label })}
+      title=${t("ui.theme.gatewayStatus", { label })}
     ></span>
   `;
 }

@@ -27,55 +27,61 @@ const PALETTE_ITEMS: PaletteItem[] = [
   ...SLASH_PALETTE_ITEMS,
   {
     id: "nav-overview",
-    label: "Overview",
+    label: t("tabs.overview"),
     icon: "barChart",
     category: "navigation",
     action: "nav:overview",
   },
   {
     id: "nav-sessions",
-    label: "Sessions",
+    label: t("tabs.sessions"),
     icon: "fileText",
     category: "navigation",
     action: "nav:sessions",
   },
   {
     id: "nav-cron",
-    label: "Scheduled",
+    label: t("tabs.cron"),
     icon: "scrollText",
     category: "navigation",
     action: "nav:cron",
   },
-  { id: "nav-skills", label: "Skills", icon: "zap", category: "navigation", action: "nav:skills" },
+  {
+    id: "nav-skills",
+    label: t("tabs.skills"),
+    icon: "zap",
+    category: "navigation",
+    action: "nav:skills",
+  },
   {
     id: "nav-config",
-    label: "Settings",
+    label: t("tabs.config"),
     icon: "settings",
     category: "navigation",
     action: "nav:config",
   },
   {
     id: "nav-agents",
-    label: "Agents",
+    label: t("tabs.agents"),
     icon: "folder",
     category: "navigation",
     action: "nav:agents",
   },
   {
     id: "skill-shell",
-    label: "Shell Command",
+    label: t("ui.commandPalette.shellCommand"),
     icon: "monitor",
     category: "skills",
     action: "/skill shell",
-    description: "Run shell",
+    description: t("ui.commandPalette.shellCommandDescription"),
   },
   {
     id: "skill-debug",
-    label: "Debug Mode",
+    label: t("ui.commandPalette.debugMode"),
     icon: "bug",
     category: "skills",
     action: "/verbose full",
-    description: "Toggle debug",
+    description: t("ui.commandPalette.debugModeDescription"),
   },
 ];
 
@@ -177,9 +183,9 @@ function handleKeydown(e: KeyboardEvent, props: CommandPaletteProps) {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  search: "Search",
-  navigation: "Navigation",
-  skills: "Skills",
+  search: t("common.search"),
+  navigation: t("ui.commandPalette.navigation"),
+  skills: t("tabs.skills"),
 };
 
 function focusInput(el: Element | undefined) {

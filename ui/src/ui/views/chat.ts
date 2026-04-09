@@ -31,6 +31,7 @@ import {
 } from "../chat/slash-commands.ts";
 import { isSttSupported, startStt, stopStt } from "../chat/speech.ts";
 import { icons } from "../icons.ts";
+import { t } from "../../i18n/index.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
@@ -189,7 +190,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
         role="status"
         aria-live="polite"
       >
-        ${icons.loader} Compacting context...
+        ${icons.loader} 正在压缩上下文...
       </div>
     `;
   }
@@ -200,7 +201,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
         role="status"
         aria-live="polite"
       >
-        ${icons.loader} Retrying after compaction...
+        ${icons.loader} 压缩后正在重试...
       </div>
     `;
   }
@@ -213,7 +214,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
           role="status"
           aria-live="polite"
         >
-          ${icons.check} Context compacted
+          ${icons.check} 上下文已压缩
         </div>
       `;
     }
@@ -231,18 +232,18 @@ function renderFallbackIndicator(status: FallbackIndicatorStatus | null | undefi
     return nothing;
   }
   const details = [
-    `Selected: ${status.selected}`,
-    phase === "cleared" ? `Active: ${status.selected}` : `Active: ${status.active}`,
-    phase === "cleared" && status.previous ? `Previous fallback: ${status.previous}` : null,
-    status.reason ? `Reason: ${status.reason}` : null,
-    status.attempts.length > 0 ? `Attempts: ${status.attempts.slice(0, 3).join(" | ")}` : null,
+    `已选择：${status.selected}`,
+    phase === "cleared" ? `当前：${status.selected}` : `当前：${status.active}`,
+    phase === "cleared" && status.previous ? `上一个回退：${status.previous}` : null,
+    status.reason ? `原因：${status.reason}` : null,
+    status.attempts.length > 0 ? `尝试：${status.attempts.slice(0, 3).join(" | ")}` : null,
   ]
     .filter(Boolean)
     .join(" • ");
   const message =
     phase === "cleared"
-      ? `Fallback cleared: ${status.selected}`
-      : `Fallback active: ${status.active}`;
+      ? `回退已清除：${status.selected}`
+      : `回退已启用：${status.active}`;
   const className =
     phase === "cleared"
       ? "compaction-indicator compaction-indicator--fallback-cleared"
@@ -337,7 +338,7 @@ function renderContextNotice(
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
-      <span>${pct}% context used</span>
+      <span>已使用上下文 ${pct}% </span>
       <span class="context-notice__detail"
         >${formatTokensCompact(used)} / ${formatTokensCompact(limit)}</span
       >
@@ -466,11 +467,11 @@ function renderAttachmentPreview(props: ChatProps): TemplateResult | typeof noth
       ${attachments.map(
         (att) => html`
           <div class="chat-attachment-thumb">
-            <img src=${att.dataUrl} alt="Attachment preview" />
+            <img src=${att.dataUrl} alt="附件预览" />
             <button
               class="chat-attachment-remove"
               type="button"
-              aria-label="Remove attachment"
+              aria-label="移除附件"
               @click=${() => {
                 const next = (props.attachments ?? []).filter((a) => a.id !== att.id);
                 props.onAttachmentsChange?.(next);
@@ -622,15 +623,15 @@ function exportMarkdown(props: ChatProps): void {
   exportChatMarkdown(props.messages, props.assistantName);
 }
 
-const WELCOME_SUGGESTIONS = [
-  "What can you do?",
-  "Summarize my recent sessions",
-  "Help me configure a channel",
-  "Check system health",
+const WELCOME_SUGGESTION_KEYS = [
+  "chat.welcome.suggestions.whatCanYouDo",
+  "chat.welcome.suggestions.summarizeSessions",
+  "chat.welcome.suggestions.configureChannel",
+  "chat.welcome.suggestions.checkHealth",
 ];
 
 function renderWelcomeState(props: ChatProps): TemplateResult {
-  const name = props.assistantName || "Assistant";
+  const name = props.assistantName || "助手";
   const avatar = resolveAgentAvatarUrl({
     identity: {
       avatar: props.assistantAvatar ?? undefined,
@@ -653,23 +654,26 @@ function renderWelcomeState(props: ChatProps): TemplateResult {
           </div>`}
       <h2>${name}</h2>
       <div class="agent-chat__badges">
-        <span class="agent-chat__badge"><img src=${logoUrl} alt="" /> Ready to chat</span>
+        <span class="agent-chat__badge"><img src=${logoUrl} alt="" /> 已准备好聊天</span>
       </div>
-      <p class="agent-chat__hint">Type a message below &middot; <kbd>/</kbd> for commands</p>
+      <p class="agent-chat__hint">在下方输入消息 &middot; <kbd>/</kbd> 打开命令</p>
       <div class="agent-chat__suggestions">
-        ${WELCOME_SUGGESTIONS.map(
-          (text) => html`
-            <button
-              type="button"
-              class="agent-chat__suggestion"
-              @click=${() => {
-                props.onDraftChange(text);
-                props.onSend();
-              }}
-            >
-              ${text}
-            </button>
-          `,
+        ${WELCOME_SUGGESTION_KEYS.map(
+          (key) => {
+            const text = t(key);
+            return html`
+              <button
+                type="button"
+                class="agent-chat__suggestion"
+                @click=${() => {
+                  props.onDraftChange(text);
+                  props.onSend();
+                }}
+              >
+                ${text}
+              </button>
+            `;
+          },
         )}
       </div>
     </div>
@@ -685,8 +689,8 @@ function renderSearchBar(requestUpdate: () => void): TemplateResult | typeof not
       ${icons.search}
       <input
         type="text"
-        placeholder="Search messages..."
-        aria-label="Search messages"
+        placeholder="搜索消息..."
+        aria-label="搜索消息"
         .value=${vs.searchQuery}
         @input=${(e: Event) => {
           vs.searchQuery = (e.target as HTMLInputElement).value;
@@ -695,7 +699,7 @@ function renderSearchBar(requestUpdate: () => void): TemplateResult | typeof not
       />
       <button
         class="btn btn--ghost"
-        aria-label="Close search"
+        aria-label="关闭搜索"
         @click=${() => {
           vs.searchOpen = false;
           vs.searchQuery = "";
@@ -736,7 +740,7 @@ function renderPinnedSection(
           requestUpdate();
         }}
       >
-        ${icons.bookmark} ${entries.length} pinned
+        ${icons.bookmark} 已固定 ${entries.length} 条
         <span class="collapse-chevron ${vs.pinnedExpanded ? "" : "collapse-chevron--collapsed"}"
           >${icons.chevronDown}</span
         >
@@ -748,7 +752,7 @@ function renderPinnedSection(
                 ({ index, text, role }) => html`
                   <div class="agent-chat__pinned-item">
                     <span class="agent-chat__pinned-role"
-                      >${role === "user" ? "You" : "Assistant"}</span
+                      >${role === "user" ? "你" : "助手"}</span
                     >
                     <span class="agent-chat__pinned-text"
                       >${text.slice(0, 100)}${text.length > 100 ? "..." : ""}</span
@@ -759,7 +763,7 @@ function renderPinnedSection(
                         pinned.unpin(index);
                         requestUpdate();
                       }}
-                      title="Unpin"
+                      title="取消固定"
                     >
                       ${icons.x}
                     </button>
@@ -784,7 +788,7 @@ function renderSlashMenu(
   // Arg-picker mode: show options for the selected command
   if (vs.slashMenuMode === "args" && vs.slashMenuCommand && vs.slashMenuArgItems.length > 0) {
     return html`
-      <div class="slash-menu" role="listbox" aria-label="Command arguments">
+      <div class="slash-menu" role="listbox" aria-label="命令参数">
         <div class="slash-menu-group">
           <div class="slash-menu-group__label">
             /${vs.slashMenuCommand.name} ${vs.slashMenuCommand.description}
@@ -811,7 +815,7 @@ function renderSlashMenu(
           )}
         </div>
         <div class="slash-menu-footer">
-          <kbd>↑↓</kbd> navigate <kbd>Tab</kbd> fill <kbd>Enter</kbd> run <kbd>Esc</kbd> close
+          <kbd>↑↓</kbd> 导航 <kbd>Tab</kbd> 填入 <kbd>Enter</kbd> 运行 <kbd>Esc</kbd> 关闭
         </div>
       </div>
     `;
@@ -873,10 +877,10 @@ function renderSlashMenu(
   }
 
   return html`
-    <div class="slash-menu" role="listbox" aria-label="Slash commands">
+    <div class="slash-menu" role="listbox" aria-label="斜杠命令">
       ${sections}
       <div class="slash-menu-footer">
-        <kbd>↑↓</kbd> navigate <kbd>Tab</kbd> fill <kbd>Enter</kbd> select <kbd>Esc</kbd> close
+        <kbd>↑↓</kbd> 导航 <kbd>Tab</kbd> 填入 <kbd>Enter</kbd> 选择 <kbd>Esc</kbd> 关闭
       </div>
     </div>
   `;
@@ -907,9 +911,9 @@ export function renderChat(props: ChatProps) {
 
   const placeholder = props.connected
     ? hasAttachments
-      ? "Add a message or paste more images..."
-      : `Message ${props.assistantName || "agent"} (Enter to send)`
-    : "Connect to the gateway to start chatting...";
+      ? "输入消息，或继续粘贴更多图片..."
+      : `给 ${props.assistantName || "代理"} 发消息（回车发送）`
+    : "请先连接网关，再开始聊天...";
 
   const requestUpdate = props.onRequestUpdate ?? (() => {});
   const getDraft = props.getDraft ?? (() => props.draft);
@@ -946,7 +950,7 @@ export function renderChat(props: ChatProps) {
       <div class="chat-thread-inner">
         ${props.loading
           ? html`
-              <div class="chat-loading-skeleton" aria-label="Loading chat">
+              <div class="chat-loading-skeleton" aria-label="正在加载聊天">
                 <div class="chat-line assistant">
                   <div class="chat-msg">
                     <div class="chat-bubble">
@@ -985,7 +989,7 @@ export function renderChat(props: ChatProps) {
           : nothing}
         ${isEmpty && !vs.searchOpen ? renderWelcomeState(props) : nothing}
         ${isEmpty && vs.searchOpen
-          ? html` <div class="agent-chat__empty">No matching messages</div> `
+          ? html` <div class="agent-chat__empty">没有匹配的消息</div> `
           : nothing}
         ${repeat(
           chatItems,
@@ -1170,8 +1174,8 @@ export function renderChat(props: ChatProps) {
               class="chat-focus-exit"
               type="button"
               @click=${props.onToggleFocusMode}
-              aria-label="Exit focus mode"
-              title="Exit focus mode"
+              aria-label="退出专注模式"
+              title="退出专注模式"
             >
               ${icons.x}
             </button>
@@ -1213,19 +1217,19 @@ export function renderChat(props: ChatProps) {
       ${props.queue.length
         ? html`
             <div class="chat-queue" role="status" aria-live="polite">
-              <div class="chat-queue__title">Queued (${props.queue.length})</div>
+              <div class="chat-queue__title">队列中（${props.queue.length}）</div>
               <div class="chat-queue__list">
                 ${props.queue.map(
                   (item) => html`
                     <div class="chat-queue__item">
                       <div class="chat-queue__text">
                         ${item.text ||
-                        (item.attachments?.length ? `Image (${item.attachments.length})` : "")}
+                        (item.attachments?.length ? `图片（${item.attachments.length}）` : "")}
                       </div>
                       <button
                         class="btn chat-queue__remove"
                         type="button"
-                        aria-label="Remove queued message"
+                        aria-label="移除排队消息"
                         @click=${() => props.onQueueRemove(item.id)}
                       >
                         ${icons.x}
@@ -1243,7 +1247,7 @@ export function renderChat(props: ChatProps) {
       ${props.showNewMessages
         ? html`
             <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
-              ${icons.arrowDown} New messages
+              ${icons.arrowDown} 新消息
             </button>
           `
         : nothing}
@@ -1272,7 +1276,7 @@ export function renderChat(props: ChatProps) {
           @keydown=${handleKeyDown}
           @input=${handleInput}
           @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
-          placeholder=${vs.sttRecording ? "Listening..." : placeholder}
+          placeholder=${vs.sttRecording ? "正在聆听..." : placeholder}
           rows="1"
         ></textarea>
 
@@ -1283,8 +1287,8 @@ export function renderChat(props: ChatProps) {
               @click=${() => {
                 document.querySelector<HTMLInputElement>(".agent-chat__file-input")?.click();
               }}
-              title="Attach file"
-              aria-label="Attach file"
+              title="附加文件"
+              aria-label="附加文件"
               ?disabled=${!props.connected}
             >
               ${icons.paperclip}
@@ -1336,7 +1340,7 @@ export function renderChat(props: ChatProps) {
                         }
                       }
                     }}
-                    title=${vs.sttRecording ? "Stop recording" : "Voice input"}
+                    title=${vs.sttRecording ? "停止录音" : "语音输入"}
                     ?disabled=${!props.connected}
                   >
                     ${vs.sttRecording ? icons.micOff : icons.mic}
@@ -1354,8 +1358,8 @@ export function renderChat(props: ChatProps) {
                   <button
                     class="btn btn--ghost"
                     @click=${props.onNewSession}
-                    title="New session"
-                    aria-label="New session"
+                    title="新建会话"
+                    aria-label="新建会话"
                   >
                     ${icons.plus}
                   </button>
@@ -1363,8 +1367,8 @@ export function renderChat(props: ChatProps) {
             <button
               class="btn btn--ghost"
               @click=${() => exportMarkdown(props)}
-              title="Export"
-              aria-label="Export chat"
+              title="导出"
+              aria-label="导出聊天"
               ?disabled=${props.messages.length === 0}
             >
               ${icons.download}
@@ -1375,8 +1379,8 @@ export function renderChat(props: ChatProps) {
                   <button
                     class="chat-send-btn chat-send-btn--stop"
                     @click=${props.onAbort}
-                    title="Stop"
-                    aria-label="Stop generating"
+                    title="停止"
+                    aria-label="停止生成"
                   >
                     ${icons.stop}
                   </button>
@@ -1391,8 +1395,8 @@ export function renderChat(props: ChatProps) {
                       props.onSend();
                     }}
                     ?disabled=${!props.connected || props.sending}
-                    title=${isBusy ? "Queue" : "Send"}
-                    aria-label=${isBusy ? "Queue message" : "Send message"}
+                    title=${isBusy ? "加入队列" : "发送"}
+                    aria-label=${isBusy ? "将消息加入队列" : "发送消息"}
                   >
                     ${icons.send}
                   </button>

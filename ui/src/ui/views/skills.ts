@@ -64,12 +64,14 @@ export type SkillsProps = {
 
 type StatusTabDef = { id: SkillsStatusFilter; label: string };
 
-const STATUS_TABS: StatusTabDef[] = [
-  { id: "all", label: "All" },
-  { id: "ready", label: "Ready" },
-  { id: "needs-setup", label: "Needs Setup" },
-  { id: "disabled", label: "Disabled" },
-];
+function getStatusTabs(): StatusTabDef[] {
+  return [
+    { id: "all", label: t("ui.skills.tabs.all") },
+    { id: "ready", label: t("ui.skills.tabs.ready") },
+    { id: "needs-setup", label: t("ui.skills.tabs.needsSetup") },
+    { id: "disabled", label: t("ui.skills.tabs.disabled") },
+  ];
+}
 
 function skillMatchesStatus(skill: SkillStatusEntry, status: SkillsStatusFilter): boolean {
   switch (status) {
@@ -92,6 +94,7 @@ function skillStatusClass(skill: SkillStatusEntry): string {
 }
 
 export function renderSkills(props: SkillsProps) {
+  const statusTabs = getStatusTabs();
   const skills = props.report?.skills ?? [];
 
   const statusCounts: Record<SkillsStatusFilter, number> = {
@@ -133,8 +136,8 @@ export function renderSkills(props: SkillsProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <div>
-          <div class="card-title">Skills</div>
-          <div class="card-sub">Installed skills and their status.</div>
+          <div class="card-title">${t("ui.skills.title")}</div>
+          <div class="card-sub">${t("ui.skills.subtitle")}</div>
         </div>
         <button
           class="btn"
@@ -146,7 +149,7 @@ export function renderSkills(props: SkillsProps) {
       </div>
 
       <div class="agent-tabs" style="margin-top: 14px;">
-        ${STATUS_TABS.map(
+        ${statusTabs.map(
           (tab) => html`
             <button
               class="agent-tab ${props.statusFilter === tab.id ? "active" : ""}"
@@ -166,19 +169,19 @@ export function renderSkills(props: SkillsProps) {
           <input
             .value=${props.filter}
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Filter installed skills"
+            placeholder=${t("ui.skills.filterPlaceholder")}
             autocomplete="off"
             name="skills-filter"
           />
         </label>
-        <div class="muted">${filtered.length} shown</div>
+        <div class="muted">${t("ui.skills.shown", { count: filtered.length })}</div>
       </div>
 
       <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <div style="font-weight: 600;">ClawHub</div>
+          <div style="font-weight: 600;">${t("ui.skills.clawHub")}</div>
           <div class="muted" style="font-size: 13px;">
-            Search and install skills from the registry
+            ${t("ui.skills.clawHubSubtitle")}
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -187,12 +190,12 @@ export function renderSkills(props: SkillsProps) {
               .value=${props.clawhubQuery}
               @input=${(e: Event) =>
                 props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-              placeholder="Search ClawHub skills…"
+              placeholder=${t("ui.skills.clawHubPlaceholder")}
               autocomplete="off"
               name="clawhub-search"
             />
           </label>
-          ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
+          ${props.clawhubSearchLoading ? html`<span class="muted">${t("ui.skills.searching")}</span>` : nothing}
         </div>
         ${props.clawhubSearchError
           ? html`<div class="callout danger" style="margin-top: 8px;">
@@ -217,8 +220,8 @@ export function renderSkills(props: SkillsProps) {
         ? html`
             <div class="muted" style="margin-top: 16px">
               ${!props.connected && !props.report
-                ? "Not connected to gateway."
-                : "No skills found."}
+                ? t("ui.skills.notConnected")
+                : t("ui.skills.noSkills")}
             </div>
           `
         : html`
@@ -251,7 +254,7 @@ function renderClawHubResults(props: SkillsProps) {
     return nothing;
   }
   if (results.length === 0) {
-    return html`<div class="muted" style="margin-top: 8px;">No skills found on ClawHub.</div>`;
+    return html`<div class="muted" style="margin-top: 8px;">${t("ui.skills.noHubSkills")}</div>`;
   }
   return html`
     <div class="list" style="margin-top: 8px;">
@@ -277,7 +280,7 @@ function renderClawHubResults(props: SkillsProps) {
                   props.onClawHubInstall(r.slug);
                 }}
               >
-                ${props.clawhubInstallSlug === r.slug ? "Installing\u2026" : "Install"}
+                ${props.clawhubInstallSlug === r.slug ? "正在安装\u2026" : "安装"}
               </button>
             </div>
           </div>
@@ -319,7 +322,7 @@ function renderClawHubDetailDialog(props: SkillsProps) {
               (e.currentTarget as HTMLElement).closest("dialog")?.close();
             }}
           >
-            Close
+            关闭
           </button>
         </div>
         <div class="md-preview-dialog__body" style="display: grid; gap: 16px;">
@@ -334,15 +337,15 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                     </div>
                     ${detail.owner?.displayName
                       ? html`<div class="muted" style="font-size: 13px;">
-                          By
+                          作者：
                           ${detail.owner.displayName}${detail.owner.handle
-                            ? html` (@${detail.owner.handle})`
+                            ? html`（@${detail.owner.handle}）`
                             : nothing}
                         </div>`
                       : nothing}
                     ${detail.latestVersion
                       ? html`<div class="muted" style="font-size: 13px;">
-                          Latest: v${detail.latestVersion.version}
+                          最新版本：v${detail.latestVersion.version}
                         </div>`
                       : nothing}
                     ${detail.latestVersion?.changelog
@@ -354,7 +357,7 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                       : nothing}
                     ${detail.metadata?.os
                       ? html`<div class="muted" style="font-size: 12px;">
-                          Platforms: ${detail.metadata.os.join(", ")}
+                          平台：${detail.metadata.os.join(", ")}
                         </div>`
                       : nothing}
                     <button
@@ -367,11 +370,11 @@ function renderClawHubDetailDialog(props: SkillsProps) {
                       }}
                     >
                       ${props.clawhubInstallSlug === props.clawhubDetailSlug
-                        ? "Installing\u2026"
-                        : `Install ${detail.skill.displayName}`}
+                        ? "正在安装\u2026"
+                        : `安装 ${detail.skill.displayName}`}
                     </button>
                   `
-                : html`<div class="muted">Skill not found.</div>`}
+                : html`<div class="muted">${t("ui.skills.skillNotFound")}</div>`}
         </div>
       </div>
     </dialog>
@@ -456,7 +459,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
               (e.currentTarget as HTMLElement).closest("dialog")?.close();
             }}
           >
-            Close
+            关闭
           </button>
         </div>
         <div class="md-preview-dialog__body" style="display: grid; gap: 16px;">
@@ -473,14 +476,16 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                   class="callout"
                   style="border-color: var(--warn-subtle); background: var(--warn-subtle); color: var(--warn);"
                 >
-                  <div style="font-weight: 600; margin-bottom: 4px;">Missing requirements</div>
+                  <div style="font-weight: 600; margin-bottom: 4px;">
+                    ${t("ui.skills.missingRequirements")}
+                  </div>
                   <div>${missing.join(", ")}</div>
                 </div>
               `
             : nothing}
           ${reasons.length > 0
             ? html`
-                <div class="muted" style="font-size: 13px;">Reason: ${reasons.join(", ")}</div>
+                <div class="muted" style="font-size: 13px;">原因：${reasons.join(", ")}</div>
               `
             : nothing}
 
@@ -495,17 +500,17 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
               />
             </label>
             <span style="font-size: 13px; font-weight: 500;">
-              ${skill.disabled ? "Disabled" : "Enabled"}
+              ${skill.disabled ? "已禁用" : "已启用"}
             </span>
-            ${canInstall
-              ? html`<button
-                  class="btn"
-                  ?disabled=${busy}
-                  @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}
-                >
-                  ${busy ? "Installing\u2026" : skill.install[0].label}
+              ${canInstall
+                ? html`<button
+                    class="btn"
+                    ?disabled=${busy}
+                    @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}
+                  >
+                  ${busy ? "正在安装\u2026" : skill.install[0].label}
                 </button>`
-              : nothing}
+                : nothing}
           </div>
 
           ${message
@@ -518,7 +523,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                 <div style="display: grid; gap: 8px;">
                   <div class="field">
                     <span
-                      >API key
+                      >API 密钥
                       <span class="muted" style="font-weight: normal; font-size: 0.88em;"
                         >(${skill.primaryEnv})</span
                       ></span
@@ -534,7 +539,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                     const href = safeExternalHref(skill.homepage);
                     return href
                       ? html`<div class="muted" style="font-size: 13px;">
-                          Get your key:
+                          获取密钥：
                           <a href="${href}" target="_blank" rel="noopener noreferrer"
                             >${skill.homepage}</a
                           >
@@ -546,7 +551,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
                     ?disabled=${busy}
                     @click=${() => props.onSaveKey(skill.skillKey)}
                   >
-                    Save key
+                    保存密钥
                   </button>
                 </div>
               `
@@ -555,7 +560,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
           <div
             style="border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 6px; font-size: 12px; color: var(--muted);"
           >
-            <div><span style="font-weight: 600;">Source:</span> ${skill.source}</div>
+            <div><span style="font-weight: 600;">${t("ui.skills.source")}:</span> ${skill.source}</div>
             <div style="font-family: var(--mono); word-break: break-all;">${skill.filePath}</div>
             ${(() => {
               const safeHref = safeExternalHref(skill.homepage);

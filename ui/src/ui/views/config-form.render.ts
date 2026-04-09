@@ -1,4 +1,5 @@
 import { html, nothing } from "lit";
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { ConfigUiHints } from "../types.ts";
@@ -276,53 +277,151 @@ const sectionIcons = {
 };
 
 // Section metadata
-export const SECTION_META: Record<string, { label: string; description: string }> = {
+export const SECTION_META: Record<
+  string,
+  { labelKey: string; descriptionKey: string }
+> = {
   env: {
-    label: "Environment Variables",
-    description: "Environment variables passed to the gateway process",
+    labelKey: "ui.config.sections.env.label",
+    descriptionKey: "ui.config.sections.env.description",
   },
-  update: { label: "Updates", description: "Auto-update settings and release channel" },
-  agents: { label: "Agents", description: "Agent configurations, models, and identities" },
-  auth: { label: "Authentication", description: "API keys and authentication profiles" },
+  update: {
+    labelKey: "ui.config.sections.update.label",
+    descriptionKey: "ui.config.sections.update.description",
+  },
+  agents: {
+    labelKey: "ui.config.sections.agents.label",
+    descriptionKey: "ui.config.sections.agents.description",
+  },
+  auth: {
+    labelKey: "ui.config.sections.auth.label",
+    descriptionKey: "ui.config.sections.auth.description",
+  },
   channels: {
-    label: "Channels",
-    description: "Messaging channels (Telegram, Discord, Slack, etc.)",
+    labelKey: "ui.config.sections.channels.label",
+    descriptionKey: "ui.config.sections.channels.description",
   },
-  messages: { label: "Messages", description: "Message handling and routing settings" },
-  commands: { label: "Commands", description: "Custom slash commands" },
-  hooks: { label: "Hooks", description: "Webhooks and event hooks" },
-  skills: { label: "Skills", description: "Skill packs and capabilities" },
-  tools: { label: "Tools", description: "Tool configurations (browser, search, etc.)" },
-  gateway: { label: "Gateway", description: "Gateway server settings (port, auth, binding)" },
-  wizard: { label: "Setup Wizard", description: "Setup wizard state and history" },
+  messages: {
+    labelKey: "ui.config.sections.messages.label",
+    descriptionKey: "ui.config.sections.messages.description",
+  },
+  commands: {
+    labelKey: "ui.config.sections.commands.label",
+    descriptionKey: "ui.config.sections.commands.description",
+  },
+  hooks: {
+    labelKey: "ui.config.sections.hooks.label",
+    descriptionKey: "ui.config.sections.hooks.description",
+  },
+  skills: {
+    labelKey: "ui.config.sections.skills.label",
+    descriptionKey: "ui.config.sections.skills.description",
+  },
+  tools: {
+    labelKey: "ui.config.sections.tools.label",
+    descriptionKey: "ui.config.sections.tools.description",
+  },
+  gateway: {
+    labelKey: "ui.config.sections.gateway.label",
+    descriptionKey: "ui.config.sections.gateway.description",
+  },
+  wizard: {
+    labelKey: "ui.config.sections.wizard.label",
+    descriptionKey: "ui.config.sections.wizard.description",
+  },
   // Additional sections
-  meta: { label: "Metadata", description: "Gateway metadata and version information" },
-  logging: { label: "Logging", description: "Log levels and output configuration" },
-  browser: { label: "Browser", description: "Browser automation settings" },
-  ui: { label: "UI", description: "User interface preferences" },
-  models: { label: "Models", description: "AI model configurations and providers" },
-  bindings: { label: "Bindings", description: "Key bindings and shortcuts" },
-  broadcast: { label: "Broadcast", description: "Broadcast and notification settings" },
-  audio: { label: "Audio", description: "Audio input/output settings" },
-  session: { label: "Session", description: "Session management and persistence" },
-  cron: { label: "Cron", description: "Scheduled tasks and automation" },
-  web: { label: "Web", description: "Web server and API settings" },
-  discovery: { label: "Discovery", description: "Service discovery and networking" },
-  canvasHost: { label: "Canvas Host", description: "Canvas rendering and display" },
-  talk: { label: "Talk", description: "Voice and speech settings" },
-  plugins: { label: "Plugins", description: "Plugin management and extensions" },
+  meta: {
+    labelKey: "ui.config.sections.meta.label",
+    descriptionKey: "ui.config.sections.meta.description",
+  },
+  logging: {
+    labelKey: "ui.config.sections.logging.label",
+    descriptionKey: "ui.config.sections.logging.description",
+  },
+  browser: {
+    labelKey: "ui.config.sections.browser.label",
+    descriptionKey: "ui.config.sections.browser.description",
+  },
+  ui: {
+    labelKey: "ui.config.sections.ui.label",
+    descriptionKey: "ui.config.sections.ui.description",
+  },
+  models: {
+    labelKey: "ui.config.sections.models.label",
+    descriptionKey: "ui.config.sections.models.description",
+  },
+  bindings: {
+    labelKey: "ui.config.sections.bindings.label",
+    descriptionKey: "ui.config.sections.bindings.description",
+  },
+  broadcast: {
+    labelKey: "ui.config.sections.broadcast.label",
+    descriptionKey: "ui.config.sections.broadcast.description",
+  },
+  audio: {
+    labelKey: "ui.config.sections.audio.label",
+    descriptionKey: "ui.config.sections.audio.description",
+  },
+  session: {
+    labelKey: "ui.config.sections.session.label",
+    descriptionKey: "ui.config.sections.session.description",
+  },
+  cron: {
+    labelKey: "ui.config.sections.cron.label",
+    descriptionKey: "ui.config.sections.cron.description",
+  },
+  web: {
+    labelKey: "ui.config.sections.web.label",
+    descriptionKey: "ui.config.sections.web.description",
+  },
+  discovery: {
+    labelKey: "ui.config.sections.discovery.label",
+    descriptionKey: "ui.config.sections.discovery.description",
+  },
+  canvasHost: {
+    labelKey: "ui.config.sections.canvasHost.label",
+    descriptionKey: "ui.config.sections.canvasHost.description",
+  },
+  talk: {
+    labelKey: "ui.config.sections.talk.label",
+    descriptionKey: "ui.config.sections.talk.description",
+  },
+  plugins: {
+    labelKey: "ui.config.sections.plugins.label",
+    descriptionKey: "ui.config.sections.plugins.description",
+  },
   diagnostics: {
-    label: "Diagnostics",
-    description: "Instrumentation, OpenTelemetry, and cache-trace settings",
+    labelKey: "ui.config.sections.diagnostics.label",
+    descriptionKey: "ui.config.sections.diagnostics.description",
   },
-  cli: { label: "CLI", description: "CLI banner and startup behavior" },
-  secrets: { label: "Secrets", description: "Secret provider configuration" },
+  cli: {
+    labelKey: "ui.config.sections.cli.label",
+    descriptionKey: "ui.config.sections.cli.description",
+  },
+  secrets: {
+    labelKey: "ui.config.sections.secrets.label",
+    descriptionKey: "ui.config.sections.secrets.description",
+  },
   acp: {
-    label: "ACP",
-    description: "Agent Communication Protocol runtime and streaming settings",
+    labelKey: "ui.config.sections.acp.label",
+    descriptionKey: "ui.config.sections.acp.description",
   },
-  mcp: { label: "MCP", description: "Model Context Protocol server definitions" },
+  mcp: {
+    labelKey: "ui.config.sections.mcp.label",
+    descriptionKey: "ui.config.sections.mcp.description",
+  },
 };
+
+function resolveSectionMetaText(key: string): { label: string; description: string } | null {
+  const meta = SECTION_META[key];
+  if (!meta) {
+    return null;
+  }
+  return {
+    label: t(meta.labelKey),
+    description: t(meta.descriptionKey),
+  };
+}
 
 function getSectionIcon(key: string) {
   return sectionIcons[key as keyof typeof sectionIcons] ?? sectionIcons.default;
@@ -340,7 +439,7 @@ function matchesSearch(params: {
   }
   const criteria = parseConfigSearchQuery(params.query);
   const q = criteria.text;
-  const meta = SECTION_META[params.key];
+  const meta = resolveSectionMetaText(params.key);
   const sectionMetaMatches =
     q &&
     (normalizeLowercaseStringOrEmpty(params.key).includes(q) ||
@@ -362,12 +461,12 @@ function matchesSearch(params: {
 
 export function renderConfigForm(props: ConfigFormProps) {
   if (!props.schema) {
-    return html` <div class="muted">Schema unavailable.</div> `;
+    return html` <div class="muted">${t("ui.config.schemaUnavailable")}</div> `;
   }
   const schema = props.schema;
   const value = props.value ?? {};
   if (schemaType(schema) !== "object" || !schema.properties) {
-    return html` <div class="callout danger">Unsupported schema. Use Raw.</div> `;
+    return html` <div class="callout danger">${t("ui.config.unsupportedSchema")}</div> `;
   }
   const unsupported = new Set(props.unsupportedPaths ?? []);
   const properties = schema.properties;
@@ -427,7 +526,9 @@ export function renderConfigForm(props: ConfigFormProps) {
       <div class="config-empty">
         <div class="config-empty__icon">${icons.search}</div>
         <div class="config-empty__text">
-          ${searchQuery ? `No settings match "${searchQuery}"` : "No settings in this section"}
+          ${searchQuery
+            ? t("ui.config.noSettingsMatch", { query: searchQuery })
+            : t("ui.config.noSettingsInSection")}
         </div>
       </div>
     `;
@@ -496,7 +597,7 @@ export function renderConfigForm(props: ConfigFormProps) {
             });
           })()
         : filteredEntries.map(([key, node]) => {
-            const meta = SECTION_META[key] ?? {
+            const meta = resolveSectionMetaText(key) ?? {
               label: key.charAt(0).toUpperCase() + key.slice(1),
               description: node.description ?? "",
             };

@@ -94,8 +94,8 @@ export function renderOverview(props: OverviewProps) {
             href="https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
-            title="Device pairing docs (opens in new tab)"
-            >Docs: Device pairing</a
+            title=${t("ui.overview.pairingDocsTitle")}
+            >${t("ui.overview.pairingDocsLink")}</a
           >
         </div>
       </div>
@@ -127,8 +127,8 @@ export function renderOverview(props: OverviewProps) {
               href="https://docs.openclaw.ai/web/dashboard"
               target=${EXTERNAL_LINK_TARGET}
               rel=${buildExternalLinkRel()}
-              title="Control UI auth docs (opens in new tab)"
-              >Docs: Control UI auth</a
+              title=${t("ui.overview.authDocsTitle")}
+              >${t("ui.overview.authDocsLink")}</a
             >
           </div>
         </div>
@@ -143,8 +143,8 @@ export function renderOverview(props: OverviewProps) {
             href="https://docs.openclaw.ai/web/dashboard"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
-            title="Control UI auth docs (opens in new tab)"
-            >Docs: Control UI auth</a
+            title=${t("ui.overview.authDocsTitle")}
+            >${t("ui.overview.authDocsLink")}</a
           >
         </div>
       </div>
@@ -176,8 +176,8 @@ export function renderOverview(props: OverviewProps) {
             href="https://docs.openclaw.ai/gateway/tailscale"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
-            title="Tailscale Serve docs (opens in new tab)"
-            >Docs: Tailscale Serve</a
+            title=${t("ui.overview.tailscaleDocsTitle")}
+            >${t("ui.overview.tailscaleDocsLink")}</a
           >
           <span class="muted"> · </span>
           <a
@@ -185,8 +185,8 @@ export function renderOverview(props: OverviewProps) {
             href="https://docs.openclaw.ai/web/control-ui#insecure-http"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
-            title="Insecure HTTP docs (opens in new tab)"
-            >Docs: Insecure HTTP</a
+            title=${t("ui.overview.insecureDocsTitle")}
+            >${t("ui.overview.insecureDocsLink")}</a
           >
         </div>
       </div>
@@ -204,7 +204,7 @@ export function renderOverview(props: OverviewProps) {
     }
     return html`
       <div class="muted" style="margin-top: 8px">
-        Auth token must be passed as a URL fragment:
+        ${t("ui.overview.queryTokenHint")}
         <span class="mono">#token=&lt;token&gt;</span>. Query parameters (<span class="mono"
           >?token=</span
         >) may appear in server logs.
@@ -234,7 +234,7 @@ export function renderOverview(props: OverviewProps) {
                   token: v.trim() === props.settings.gatewayUrl.trim() ? props.settings.token : "",
                 });
               }}
-              placeholder="ws://100.x.y.z:18789"
+              placeholder=${t("ui.overview.wsPlaceholder")}
             />
           </label>
           ${isTrustedProxy
@@ -252,14 +252,16 @@ export function renderOverview(props: OverviewProps) {
                         const v = (e.target as HTMLInputElement).value;
                         props.onSettingsChange({ ...props.settings, token: v });
                       }}
-                      placeholder="OPENCLAW_GATEWAY_TOKEN"
+                      placeholder=${t("ui.overview.tokenPlaceholder")}
                     />
                     <button
                       type="button"
                       class="btn btn--icon ${props.showGatewayToken ? "active" : ""}"
                       style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
-                      title=${props.showGatewayToken ? "Hide token" : "Show token"}
-                      aria-label="Toggle token visibility"
+                      title=${props.showGatewayToken
+                        ? t("ui.visibility.hideToken")
+                        : t("ui.visibility.showToken")}
+                      aria-label=${t("ui.visibility.toggleToken")}
                       aria-pressed=${props.showGatewayToken}
                       @click=${props.onToggleGatewayTokenVisibility}
                     >
@@ -279,14 +281,16 @@ export function renderOverview(props: OverviewProps) {
                         const v = (e.target as HTMLInputElement).value;
                         props.onPasswordChange(v);
                       }}
-                      placeholder="system or shared password"
+                      placeholder=${t("ui.overview.passwordPlaceholder")}
                     />
                     <button
                       type="button"
                       class="btn btn--icon ${props.showGatewayPassword ? "active" : ""}"
                       style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
-                      title=${props.showGatewayPassword ? "Hide password" : "Show password"}
-                      aria-label="Toggle password visibility"
+                      title=${props.showGatewayPassword
+                        ? t("ui.visibility.hidePassword")
+                        : t("ui.visibility.showPassword")}
+                      aria-label=${t("ui.visibility.togglePassword")}
                       aria-pressed=${props.showGatewayPassword}
                       @click=${props.onToggleGatewayPasswordVisibility}
                     >

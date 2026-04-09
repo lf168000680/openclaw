@@ -4,6 +4,14 @@ import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type { LogEntry, LogLevel } from "../types.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
+const LEVEL_LABELS: Record<LogLevel, string> = {
+  trace: "追踪",
+  debug: "调试",
+  info: "信息",
+  warn: "警告",
+  error: "错误",
+  fatal: "致命",
+};
 
 export type LogsProps = {
   loading: boolean;
@@ -58,8 +66,8 @@ export function renderLogs(props: LogsProps) {
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <div>
-          <div class="card-title">Logs</div>
-          <div class="card-sub">Gateway file logs (JSONL).</div>
+          <div class="card-title">${t("ui.logs.title")}</div>
+          <div class="card-sub">${t("ui.logs.subtitle")}</div>
         </div>
         <div class="row" style="gap: 8px;">
           <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
@@ -74,22 +82,22 @@ export function renderLogs(props: LogsProps) {
                 exportLabel,
               )}
           >
-            Export ${exportLabel}
+            ${t(exportLabel === "filtered" ? "ui.logs.exportFiltered" : "ui.logs.exportVisible")}
           </button>
         </div>
       </div>
 
       <div class="filters" style="margin-top: 14px;">
         <label class="field" style="min-width: 220px;">
-          <span>Filter</span>
+          <span>${t("ui.logs.filter")}</span>
           <input
             .value=${props.filterText}
             @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
-            placeholder="Search logs"
+            placeholder=${t("ui.logs.searchPlaceholder")}
           />
         </label>
         <label class="field checkbox">
-          <span>Auto-follow</span>
+          <span>${t("ui.logs.autoFollow")}</span>
           <input
             type="checkbox"
             .checked=${props.autoFollow}
@@ -102,26 +110,26 @@ export function renderLogs(props: LogsProps) {
       <div class="chip-row" style="margin-top: 12px;">
         ${LEVELS.map(
           (level) => html`
-            <label class="chip log-chip ${level}">
-              <input
-                type="checkbox"
-                .checked=${props.levelFilters[level]}
-                @change=${(e: Event) =>
-                  props.onLevelToggle(level, (e.target as HTMLInputElement).checked)}
-              />
-              <span>${level}</span>
-            </label>
+          <label class="chip log-chip ${level}">
+            <input
+              type="checkbox"
+              .checked=${props.levelFilters[level]}
+              @change=${(e: Event) =>
+                props.onLevelToggle(level, (e.target as HTMLInputElement).checked)}
+            />
+            <span>${LEVEL_LABELS[level]}</span>
+          </label>
           `,
         )}
       </div>
 
       ${props.file
-        ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>`
+        ? html`<div class="muted" style="margin-top: 10px;">${t("ui.logs.file", { path: props.file })}</div>`
         : nothing}
       ${props.truncated
         ? html`
             <div class="callout" style="margin-top: 10px">
-              Log output truncated; showing latest chunk.
+              ${t("ui.logs.truncated")}
             </div>
           `
         : nothing}
@@ -131,7 +139,7 @@ export function renderLogs(props: LogsProps) {
 
       <div class="log-stream" style="margin-top: 12px;" @scroll=${props.onScroll}>
         ${filtered.length === 0
-          ? html` <div class="muted" style="padding: 12px">No log entries.</div> `
+          ? html` <div class="muted" style="padding: 12px">${t("ui.logs.noEntries")}</div> `
           : filtered.map(
               (entry) => html`
                 <div class="log-row">
