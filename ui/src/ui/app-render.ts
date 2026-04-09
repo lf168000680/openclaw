@@ -520,8 +520,8 @@ export function renderApp(state: AppViewState) {
               @click=${() => {
                 state.paletteOpen = !state.paletteOpen;
               }}
-              title="Search or jump to… (⌘K)"
-              aria-label="Open command palette"
+              title=${t("common.commandPaletteTitle")}
+              aria-label=${t("common.commandPaletteLabel")}
             >
               <span class="topbar-search__label">${t("common.search")}</span>
               <kbd class="topbar-search__kbd">⌘K</kbd>
@@ -544,11 +544,11 @@ export function renderApp(state: AppViewState) {
                       <img
                         class="sidebar-brand__logo"
                         src="${agentLogoUrl(basePath)}"
-                        alt="OpenClaw"
+                        alt=${t("common.brandName")}
                       />
                       <span class="sidebar-brand__copy">
                         <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
-                        <span class="sidebar-brand__title">OpenClaw</span>
+                        <span class="sidebar-brand__title">${t("common.brandName")}</span>
                       </span>
                     `}
               </div>
@@ -615,7 +615,9 @@ export function renderApp(state: AppViewState) {
                   href="https://docs.openclaw.ai"
                   target=${EXTERNAL_LINK_TARGET}
                   rel=${buildExternalLinkRel()}
-                  title="${t("common.docs")} (opens in new tab)"
+                  title=${t("common.docsOpenInNewTab", {
+                    docs: t("common.docs"),
+                  })}
                 >
                   <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
                   ${!navCollapsed
@@ -652,20 +654,25 @@ export function renderApp(state: AppViewState) {
         state.updateAvailable.latestVersion !== state.updateAvailable.currentVersion &&
         !isUpdateBannerDismissed(state.updateAvailable)
           ? html`<div class="update-banner callout danger" role="alert">
-              <strong>Update available:</strong> v${state.updateAvailable.latestVersion} (running
-              v${state.updateAvailable.currentVersion}).
+              <strong>${t("updateBanner.available")}</strong>
+              ${t("updateBanner.versions", {
+                latestVersion: `v${state.updateAvailable.latestVersion}`,
+                currentVersion: `v${state.updateAvailable.currentVersion}`,
+              })}
               <button
                 class="btn btn--sm update-banner__btn"
                 ?disabled=${state.updateRunning || !state.connected}
                 @click=${() => runUpdate(state)}
               >
-                ${state.updateRunning ? "Updating…" : "Update now"}
+                ${state.updateRunning
+                  ? t("updateBanner.updating")
+                  : t("updateBanner.updateNow")}
               </button>
               <button
                 class="update-banner__close"
                 type="button"
-                title="Dismiss"
-                aria-label="Dismiss update banner"
+                title=${t("updateBanner.dismiss")}
+                aria-label=${t("updateBanner.dismissAria")}
                 @click=${() => {
                   dismissUpdateBanner(state.updateAvailable);
                   state.updateAvailable = null;
@@ -1811,7 +1818,7 @@ export function renderApp(state: AppViewState) {
               assistantName: state.assistantName,
               configPath: state.configSnapshot?.path ?? null,
               rawAvailable: typeof state.configSnapshot?.raw === "string",
-              navRootLabel: "Communication",
+              navRootLabel: t("tabs.communications"),
               includeSections: [...COMMUNICATION_SECTION_KEYS],
               includeVirtualSections: false,
             })
@@ -1941,7 +1948,7 @@ export function renderApp(state: AppViewState) {
               assistantName: state.assistantName,
               configPath: state.configSnapshot?.path ?? null,
               rawAvailable: typeof state.configSnapshot?.raw === "string",
-              navRootLabel: "Automation",
+              navRootLabel: t("tabs.automation"),
               includeSections: [...AUTOMATION_SECTION_KEYS],
               includeVirtualSections: false,
             })
@@ -2006,7 +2013,7 @@ export function renderApp(state: AppViewState) {
               assistantName: state.assistantName,
               configPath: state.configSnapshot?.path ?? null,
               rawAvailable: typeof state.configSnapshot?.raw === "string",
-              navRootLabel: "Infrastructure",
+              navRootLabel: t("tabs.infrastructure"),
               includeSections: [...INFRASTRUCTURE_SECTION_KEYS],
               includeVirtualSections: false,
             })
@@ -2067,7 +2074,7 @@ export function renderApp(state: AppViewState) {
               assistantName: state.assistantName,
               configPath: state.configSnapshot?.path ?? null,
               rawAvailable: typeof state.configSnapshot?.raw === "string",
-              navRootLabel: "AI & Agents",
+              navRootLabel: t("tabs.aiAgents"),
               includeSections: [...AI_AGENTS_SECTION_KEYS],
               includeVirtualSections: false,
             })

@@ -726,7 +726,7 @@ export class OpenClawApp extends LitElement {
       });
       this.execApprovalQueue = this.execApprovalQueue.filter((entry) => entry.id !== active.id);
     } catch (err) {
-      this.execApprovalError = `Approval failed: ${String(err)}`;
+      this.execApprovalError = `审批失败：${String(err)}`;
     } finally {
       this.execApprovalBusy = false;
     }
