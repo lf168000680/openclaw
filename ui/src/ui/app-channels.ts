@@ -167,7 +167,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
     } | null;
 
     if (!response.ok || data?.ok === false || !data) {
-      const errorMessage = data?.error ?? `Profile update failed (${response.status})`;
+      const errorMessage = data?.error ?? `资料更新失败（${response.status}）`;
       host.nostrProfileFormState = {
         ...state,
         saving: false,
@@ -182,7 +182,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
       host.nostrProfileFormState = {
         ...state,
         saving: false,
-        error: "Profile publish failed on all relays.",
+        error: "资料在所有中继上发布失败。",
         success: null,
       };
       return;
@@ -192,7 +192,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
       ...state,
       saving: false,
       error: null,
-      success: "Profile published to relays.",
+      success: "资料已发布到中继。",
       fieldErrors: {},
       original: { ...state.values },
     };
@@ -201,7 +201,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
     host.nostrProfileFormState = {
       ...state,
       saving: false,
-      error: `Profile update failed: ${String(err)}`,
+      error: `资料更新失败：${String(err)}`,
       success: null,
     };
   }
@@ -239,7 +239,7 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
     } | null;
 
     if (!response.ok || data?.ok === false || !data) {
-      const errorMessage = data?.error ?? `Profile import failed (${response.status})`;
+      const errorMessage = data?.error ?? `资料导入失败（${response.status}）`;
       host.nostrProfileFormState = {
         ...state,
         importing: false,
@@ -261,8 +261,8 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
       values: nextValues,
       error: null,
       success: data.saved
-        ? "Profile imported from relays. Review and publish."
-        : "Profile imported. Review and publish.",
+        ? "已从中继导入资料，请检查后发布。"
+        : "资料已导入，请检查后发布。",
       showAdvanced,
     };
 
@@ -273,7 +273,7 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
     host.nostrProfileFormState = {
       ...state,
       importing: false,
-      error: `Profile import failed: ${String(err)}`,
+      error: `资料导入失败：${String(err)}`,
       success: null,
     };
   }

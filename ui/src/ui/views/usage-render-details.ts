@@ -64,16 +64,16 @@ function renderSessionSummary(
 
   const badges: string[] = [];
   if (session.channel) {
-    badges.push(`channel:${session.channel}`);
+    badges.push(`${t("usage.filters.channel")}：${session.channel}`);
   }
   if (session.agentId) {
-    badges.push(`agent:${session.agentId}`);
+    badges.push(`${t("usage.filters.agent")}：${session.agentId}`);
   }
   if (session.modelProvider || session.providerOverride) {
-    badges.push(`provider:${session.modelProvider ?? session.providerOverride}`);
+    badges.push(`${t("usage.filters.provider")}：${session.modelProvider ?? session.providerOverride}`);
   }
   if (session.model) {
-    badges.push(`model:${session.model}`);
+    badges.push(`${t("usage.filters.model")}：${session.model}`);
   }
 
   // Always use the full tool list for stable layout; update counts when filtering
@@ -1108,7 +1108,7 @@ function renderSessionLogsCompact(
         <select
           multiple
           size="4"
-          aria-label="Filter by role"
+          aria-label=${t("usage.details.filterByRole")}
           @change=${(event: Event) =>
             onFilterRolesChange(
               Array.from((event.target as HTMLSelectElement).selectedOptions).map(
@@ -1132,7 +1132,7 @@ function renderSessionLogsCompact(
         <select
           multiple
           size="4"
-          aria-label="Filter by tool"
+          aria-label=${t("usage.details.filterByTool")}
           @change=${(event: Event) =>
             onFilterToolsChange(
               Array.from((event.target as HTMLSelectElement).selectedOptions).map(

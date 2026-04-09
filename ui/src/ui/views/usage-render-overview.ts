@@ -102,7 +102,7 @@ function renderFilterChips(
                 class="filter-chip-remove"
                 @click=${onClearDays}
                 title=${t("usage.filters.remove")}
-                aria-label="Remove days filter"
+                aria-label=${t("usage.filters.removeDays")}
               >
                 ×
               </button>
@@ -117,7 +117,7 @@ function renderFilterChips(
                 class="filter-chip-remove"
                 @click=${onClearHours}
                 title=${t("usage.filters.remove")}
-                aria-label="Remove hours filter"
+                aria-label=${t("usage.filters.removeHours")}
               >
                 ×
               </button>
@@ -132,7 +132,7 @@ function renderFilterChips(
                 class="filter-chip-remove"
                 @click=${onClearSessions}
                 title=${t("usage.filters.remove")}
-                aria-label="Remove session filter"
+                aria-label=${t("usage.filters.removeSession")}
               >
                 ×
               </button>
@@ -721,28 +721,30 @@ function renderSessionsCard(
   const buildSessionMeta = (s: UsageSessionEntry): string[] => {
     const parts: string[] = [];
     if (showColumn("channel") && s.channel) {
-      parts.push(`channel:${s.channel}`);
+      parts.push(`${t("usage.filters.channel")}:${s.channel}`);
     }
     if (showColumn("agent") && s.agentId) {
-      parts.push(`agent:${s.agentId}`);
+      parts.push(`${t("usage.filters.agent")}:${s.agentId}`);
     }
     if (showColumn("provider") && (s.modelProvider || s.providerOverride)) {
-      parts.push(`provider:${s.modelProvider ?? s.providerOverride}`);
+      parts.push(`${t("usage.filters.provider")}:${s.modelProvider ?? s.providerOverride}`);
     }
     if (showColumn("model") && s.model) {
-      parts.push(`model:${s.model}`);
+      parts.push(`${t("usage.filters.model")}:${s.model}`);
     }
     if (showColumn("messages") && s.usage?.messageCounts) {
-      parts.push(`msgs:${s.usage.messageCounts.total}`);
+      parts.push(`${t("usage.overview.messages")} : ${s.usage.messageCounts.total}`);
     }
     if (showColumn("tools") && s.usage?.toolUsage) {
-      parts.push(`tools:${s.usage.toolUsage.totalCalls}`);
+      parts.push(`${t("usage.overview.toolCalls")}: ${s.usage.toolUsage.totalCalls}`);
     }
     if (showColumn("errors") && s.usage?.messageCounts) {
-      parts.push(`errors:${s.usage.messageCounts.errors}`);
+      parts.push(`${t("usage.overview.errors")}: ${s.usage.messageCounts.errors}`);
     }
     if (showColumn("duration") && s.usage?.durationMs) {
-      parts.push(`dur:${formatDurationCompact(s.usage.durationMs, { spaced: true }) ?? "—"}`);
+      parts.push(
+        `${t("usage.details.duration")}: ${formatDurationCompact(s.usage.durationMs, { spaced: true }) ?? "—"}`,
+      );
     }
     return parts;
   };
