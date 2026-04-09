@@ -815,7 +815,8 @@ function renderSlashMenu(
           )}
         </div>
         <div class="slash-menu-footer">
-          <kbd>↑↓</kbd> 导航 <kbd>Tab</kbd> 填入 <kbd>Enter</kbd> 运行 <kbd>Esc</kbd> 关闭
+          <kbd>↑↓</kbd> ${t("chat.navigate")} <kbd>Tab</kbd> ${t("chat.fill")} <kbd>Enter</kbd>
+          ${t("chat.run")} <kbd>Esc</kbd> ${t("chat.close")}
         </div>
       </div>
     `;
@@ -865,9 +866,11 @@ function renderSlashMenu(
               ${cmd.args ? html`<span class="slash-menu-args">${cmd.args}</span>` : nothing}
               <span class="slash-menu-desc">${cmd.description}</span>
               ${cmd.argOptions?.length
-                ? html`<span class="slash-menu-badge">${cmd.argOptions.length} options</span>`
+                ? html`<span class="slash-menu-badge"
+                    >${cmd.argOptions.length} ${t("chat.options")}</span
+                  >`
                 : cmd.executeLocal && !cmd.args
-                  ? html` <span class="slash-menu-badge">instant</span> `
+                  ? html` <span class="slash-menu-badge">${t("chat.instant")}</span> `
                   : nothing}
             </div>
           `,
@@ -880,7 +883,8 @@ function renderSlashMenu(
     <div class="slash-menu" role="listbox" aria-label="斜杠命令">
       ${sections}
       <div class="slash-menu-footer">
-        <kbd>↑↓</kbd> 导航 <kbd>Tab</kbd> 填入 <kbd>Enter</kbd> 选择 <kbd>Esc</kbd> 关闭
+        <kbd>↑↓</kbd> ${t("chat.navigate")} <kbd>Tab</kbd> ${t("chat.fill")} <kbd>Enter</kbd>
+        ${t("chat.select")} <kbd>Esc</kbd> ${t("chat.close")}
       </div>
     </div>
   `;
@@ -1486,7 +1490,7 @@ function buildChatItems(props: ChatProps): Array<ChatItem | MessageGroup> {
           typeof marker.id === "string"
             ? `divider:compaction:${marker.id}`
             : `divider:compaction:${normalized.timestamp}:${i}`,
-        label: "Compaction",
+        label: t("ui.sessions.compaction"),
         timestamp: normalized.timestamp ?? Date.now(),
       });
       continue;

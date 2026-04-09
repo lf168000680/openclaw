@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { t } from "../../i18n/index.ts";
 import { getSafeLocalStorage } from "../../local-storage.ts";
 import type { AssistantIdentity } from "../assistant-identity.ts";
 import { icons } from "../icons.ts";
@@ -117,7 +118,7 @@ export function renderStreamingGroup(
     hour: "numeric",
     minute: "2-digit",
   });
-  const name = assistant?.name ?? "Assistant";
+  const name = assistant?.name ?? t("chat.assistantLabel");
 
   return html`
     <div class="chat-group assistant">
@@ -155,15 +156,15 @@ export function renderMessageGroup(
   },
 ) {
   const normalizedRole = normalizeRoleForGrouping(group.role);
-  const assistantName = opts.assistantName ?? "Assistant";
+  const assistantName = opts.assistantName ?? t("chat.assistantLabel");
   const userLabel = group.senderLabel?.trim();
   const who =
     normalizedRole === "user"
-      ? (userLabel ?? "You")
+      ? (userLabel ?? t("chat.youLabel"))
       : normalizedRole === "assistant"
         ? assistantName
         : normalizedRole === "tool"
-          ? "Tool"
+          ? t("chat.toolLabel")
           : normalizedRole;
   const roleClass =
     normalizedRole === "user"
@@ -370,7 +371,7 @@ function createDeleteConfirmPopover(side: DeleteConfirmSide): DeleteConfirmPopov
 
   const text = document.createElement("p");
   text.className = "chat-delete-confirm__text";
-  text.textContent = "Delete this message?";
+  text.textContent = t("chat.deleteConfirm");
 
   const remember = document.createElement("label");
   remember.className = "chat-delete-confirm__remember";
@@ -380,7 +381,7 @@ function createDeleteConfirmPopover(side: DeleteConfirmSide): DeleteConfirmPopov
   check.type = "checkbox";
 
   const rememberText = document.createElement("span");
-  rememberText.textContent = "Don't ask again";
+  rememberText.textContent = t("chat.deleteDontAskAgain");
 
   remember.append(check, rememberText);
 
@@ -390,12 +391,12 @@ function createDeleteConfirmPopover(side: DeleteConfirmSide): DeleteConfirmPopov
   const cancel = document.createElement("button");
   cancel.className = "chat-delete-confirm__cancel";
   cancel.type = "button";
-  cancel.textContent = "Cancel";
+  cancel.textContent = t("common.cancel");
 
   const yes = document.createElement("button");
   yes.className = "chat-delete-confirm__yes";
   yes.type = "button";
-  yes.textContent = "Delete";
+  yes.textContent = t("common.delete");
 
   actions.append(cancel, yes);
   popover.append(text, remember, actions);
@@ -408,8 +409,8 @@ function renderDeleteButton(onDelete: () => void, side: DeleteConfirmSide) {
     <span class="chat-delete-wrap">
       <button
         class="chat-group-delete"
-        title="Delete"
-        aria-label="Delete message"
+        title=${t("common.delete")}
+        aria-label=${t("chat.deleteMessage")}
         @click=${(e: Event) => {
           if (shouldSkipDeleteConfirm()) {
             onDelete();
@@ -457,18 +458,20 @@ function renderDeleteButton(onDelete: () => void, side: DeleteConfirmSide) {
 }
 
 function renderTtsButton(group: MessageGroup) {
+  const idleLabel = t("chat.readAloud");
+  const activeLabel = t("chat.stopSpeaking");
   return html`
     <button
       class="btn btn--xs chat-tts-btn"
       type="button"
-      title=${isTtsSpeaking() ? "Stop speaking" : "Read aloud"}
-      aria-label=${isTtsSpeaking() ? "Stop speaking" : "Read aloud"}
+      title=${isTtsSpeaking() ? activeLabel : idleLabel}
+      aria-label=${isTtsSpeaking() ? activeLabel : idleLabel}
       @click=${(e: Event) => {
         const btn = e.currentTarget as HTMLButtonElement;
         if (isTtsSpeaking()) {
           stopTts();
           btn.classList.remove("chat-tts-btn--active");
-          btn.title = "Read aloud";
+          btn.title = idleLabel;
           return;
         }
         const text = extractGroupText(group);
@@ -476,18 +479,18 @@ function renderTtsButton(group: MessageGroup) {
           return;
         }
         btn.classList.add("chat-tts-btn--active");
-        btn.title = "Stop speaking";
+        btn.title = activeLabel;
         speakText(text, {
           onEnd: () => {
             if (btn.isConnected) {
               btn.classList.remove("chat-tts-btn--active");
-              btn.title = "Read aloud";
+              btn.title = idleLabel;
             }
           },
           onError: () => {
             if (btn.isConnected) {
               btn.classList.remove("chat-tts-btn--active");
-              btn.title = "Read aloud";
+              btn.title = idleLabel;
             }
           },
         });
@@ -504,7 +507,7 @@ function renderAvatar(
   basePath?: string,
 ) {
   const normalized = normalizeRoleForGrouping(role);
-  const assistantName = assistant?.name?.trim() || "Assistant";
+  const assistantName = assistant?.name?.trim() || t("chat.assistantLabel");
   const assistantAvatar = assistant?.avatar?.trim() || "";
   const initial =
     normalized === "user"
@@ -601,7 +604,7 @@ function renderMessageImages(images: ImageBlock[]) {
         (img) => html`
           <img
             src=${img.url}
-            alt=${img.alt ?? "Attached image"}
+            alt=${img.alt ?? t("chat.attachedImage")}
             class="chat-message-image"
             @click=${() => openImage(img.url)}
           />
@@ -642,14 +645,16 @@ function renderCollapsedToolCards(
   const summaryLabel =
     toolNames.length <= 3
       ? toolNames.join(", ")
-      : `${toolNames.slice(0, 2).join(", ")} +${toolNames.length - 2} more`;
+      : `${toolNames.slice(0, 2).join(", ")} ${t("chat.moreCount", {
+          count: String(toolNames.length - 2),
+        })}`;
 
   return html`
     <details class="chat-tools-collapse">
       <summary class="chat-tools-summary">
         <span class="chat-tools-summary__icon">${icons.zap}</span>
         <span class="chat-tools-summary__count"
-          >${totalTools} tool${totalTools === 1 ? "" : "s"}</span
+          >${t("chat.toolCount", { count: String(totalTools) })}</span
         >
         <span class="chat-tools-summary__names">${summaryLabel}</span>
       </summary>
@@ -693,16 +698,16 @@ function detectJson(text: string): { parsed: unknown; pretty: string } | null {
 /** Build a short summary label for collapsed JSON (type + key count or array length). */
 function jsonSummaryLabel(parsed: unknown): string {
   if (Array.isArray(parsed)) {
-    return `Array (${parsed.length} item${parsed.length === 1 ? "" : "s"})`;
+    return t("chat.jsonArraySummary", { count: String(parsed.length) });
   }
   if (parsed && typeof parsed === "object") {
     const keys = Object.keys(parsed as Record<string, unknown>);
     if (keys.length <= 4) {
       return `{ ${keys.join(", ")} }`;
     }
-    return `Object (${keys.length} keys)`;
+    return t("chat.jsonObjectSummary", { count: String(keys.length) });
   }
-  return "JSON";
+  return t("chat.jsonLabel");
 }
 
 function renderExpandButton(markdown: string, onOpenSidebar: (content: string) => void) {
@@ -710,8 +715,8 @@ function renderExpandButton(markdown: string, onOpenSidebar: (content: string) =
     <button
       class="btn btn--xs chat-expand-btn"
       type="button"
-      title="Open in canvas"
-      aria-label="Open in canvas"
+      title=${t("chat.openInCanvas")}
+      aria-label=${t("chat.openInCanvas")}
       @click=${() => onOpenSidebar(markdown)}
     >
       <span class="chat-expand-btn__icon" aria-hidden="true">${icons.panelRightOpen}</span>
@@ -778,7 +783,9 @@ function renderGroupedMessage(
   const toolSummaryLabel =
     toolNames.length <= 3
       ? toolNames.join(", ")
-      : `${toolNames.slice(0, 2).join(", ")} +${toolNames.length - 2} more`;
+      : `${toolNames.slice(0, 2).join(", ")} ${t("chat.moreCount", {
+          count: String(toolNames.length - 2),
+        })}`;
   const toolPreview =
     markdown && !toolSummaryLabel ? markdown.trim().replace(/\s+/g, " ").slice(0, 120) : "";
 
@@ -797,7 +804,7 @@ function renderGroupedMessage(
             <details class="chat-tool-msg-collapse">
               <summary class="chat-tool-msg-summary">
                 <span class="chat-tool-msg-summary__icon">${icons.zap}</span>
-                <span class="chat-tool-msg-summary__label">Tool output</span>
+                <span class="chat-tool-msg-summary__label">${t("ui.sidebar.toolOutput")}</span>
                 ${toolSummaryLabel
                   ? html`<span class="chat-tool-msg-summary__names">${toolSummaryLabel}</span>`
                   : toolPreview
@@ -814,7 +821,7 @@ function renderGroupedMessage(
                 ${jsonResult
                   ? html`<details class="chat-json-collapse">
                       <summary class="chat-json-summary">
-                        <span class="chat-json-badge">JSON</span>
+                        <span class="chat-json-badge">${t("chat.jsonLabel")}</span>
                         <span class="chat-json-label">${jsonSummaryLabel(jsonResult.parsed)}</span>
                       </summary>
                       <pre class="chat-json-content"><code>${jsonResult.pretty}</code></pre>
@@ -838,7 +845,7 @@ function renderGroupedMessage(
             ${jsonResult
               ? html`<details class="chat-json-collapse">
                   <summary class="chat-json-summary">
-                    <span class="chat-json-badge">JSON</span>
+                    <span class="chat-json-badge">${t("chat.jsonLabel")}</span>
                     <span class="chat-json-label">${jsonSummaryLabel(jsonResult.parsed)}</span>
                   </summary>
                   <pre class="chat-json-content"><code>${jsonResult.pretty}</code></pre>

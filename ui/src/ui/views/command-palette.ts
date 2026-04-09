@@ -265,9 +265,9 @@ export function renderCommandPalette(props: CommandPaletteProps) {
               )}
         </div>
         <div class="cmd-palette__footer">
-          <span><kbd>↑↓</kbd> navigate</span>
-          <span><kbd>↵</kbd> select</span>
-          <span><kbd>esc</kbd> close</span>
+          <span><kbd>↑↓</kbd> ${t("ui.commandPalette.footerNavigate")}</span>
+          <span><kbd>↵</kbd> ${t("ui.commandPalette.footerSelect")}</span>
+          <span><kbd>esc</kbd> ${t("ui.commandPalette.footerClose")}</span>
         </div>
       </div>
     </div>
