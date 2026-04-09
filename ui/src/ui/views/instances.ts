@@ -63,16 +63,16 @@ function renderEntry(entry: PresenceEntry, masked: boolean) {
     entry.lastInputSeconds != null
       ? t("common.secondsAgo", { count: String(entry.lastInputSeconds) })
       : t("common.na");
-  const mode = entry.mode ?? "unknown";
-  const host = entry.host ?? "unknown host";
+  const mode = entry.mode ?? t("common.unknown");
+  const host = entry.host ?? t("instances.unknownHost");
   const ip = entry.ip ?? null;
   const roles = Array.isArray(entry.roles) ? entry.roles.filter(Boolean) : [];
   const scopes = Array.isArray(entry.scopes) ? entry.scopes.filter(Boolean) : [];
   const scopesLabel =
     scopes.length > 0
       ? scopes.length > 3
-        ? `${scopes.length} scopes`
-        : `scopes: ${scopes.join(", ")}`
+        ? t("instances.scopeCount", { count: String(scopes.length) })
+        : t("instances.scopesList", { value: scopes.join(", ") })
       : null;
   return html`
     <div class="list-item">
@@ -99,7 +99,7 @@ function renderEntry(entry: PresenceEntry, masked: boolean) {
       <div class="list-meta">
         <div>${formatPresenceAge(entry)}</div>
         <div class="muted">${t("instances.lastInput", { time: lastInput })}</div>
-        <div class="muted">${t("instances.reason", { reason: entry.reason ?? "" })}</div>
+        <div class="muted">${t("instances.reason", { reason: entry.reason ?? t("common.na") })}</div>
       </div>
     </div>
   `;
